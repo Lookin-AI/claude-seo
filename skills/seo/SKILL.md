@@ -98,7 +98,7 @@ After producing a scored report for one of the trigger commands below, persist a
 | `/seo hreflang` | No | -- |
 | `/seo dataforseo` (data fetch) | No | -- |
 | `/seo image-gen` (asset generation) | No | -- |
-| `/seo content-brief` | No (has its own write path -- story B2) | -- |
+| `/seo content-brief` | Yes -- own write path, entry type `content` (story B2; see `skills/seo-content-brief/SKILL.md` "History Persistence") | `content` |
 | `/seo plan`, `/seo programmatic`, `/seo competitor-pages`, `/seo local`, `/seo maps`, `/seo google`, `/seo backlinks`, `/seo cluster`, `/seo drift baseline\|compare\|history`, `/seo ecommerce`, `/seo firecrawl`, `/seo flow` | No | -- |
 
 Only the 7 commands above produce a scored report against the canonical 7-category rubric (see "Scoring Methodology"). Everything else is a planning, generation, utility, read-only-data, or narrower-analysis step outside that rubric -- do not write history for those, and never invent an entry type beyond `audit`/`content`/`intervention` (owned by the B0 payload contract in `scripts/history_write.py`).

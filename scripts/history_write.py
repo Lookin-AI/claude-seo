@@ -81,6 +81,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import unicodedata
 from pathlib import Path
 from typing import Optional
 
@@ -112,11 +113,31 @@ _TYPE_TO_COMMIT_LABEL = {
 # ---------------------------------------------------------------------------
 # slug helper
 # ---------------------------------------------------------------------------
+#
+# CANONICAL RULE (do not fork/reimplement from prose elsewhere): this is the
+# one deterministic slug function claude-seo uses for every entry type, and
+# it is also the addressing-key contract for content briefs (story B2,
+# seo-S-40): a brief is later found by claude-blog (story B3, a *different*
+# repo that cannot import this module) via the pair (domain, slug), where
+# slug = slugify(title). B3 must reimplement this exact algorithm --
+# normalize Unicode to strip accents/diacritics BEFORE casing/collapsing, so
+# "Café" and "cafe" produce the same slug. See
+# seo-history/docs/addressing-key.md (the shared data repo both forks read)
+# for the full contract; this docstring + function body is the reference
+# implementation it points back to.
 
 
 def slugify(text: str, max_len: int = 60) -> str:
-    """Lowercase, non-alnum runs collapsed to single hyphens, trimmed,
-    truncated. Always returns a non-empty string."""
+    """Deterministic slug: Unicode-normalize (strip accents/diacritics),
+    lowercase, collapse any run of non-alphanumeric characters to a single
+    hyphen, strip leading/trailing hyphens, cap at max_len (default 60,
+    trimmed back to a hyphen boundary). Always returns a non-empty string.
+
+    Pure stdlib (re + unicodedata), no I/O -- safe to call standalone via
+    `python3 scripts/history_write.py --slugify "<text>"`.
+    """
+    text = unicodedata.normalize("NFKD", text)
+    text = "".join(ch for ch in text if not unicodedata.combining(ch))
     text = text.strip().lower()
     text = re.sub(r"[^a-z0-9]+", "-", text)
     text = re.sub(r"-{2,}", "-", text).strip("-")
@@ -414,10 +435,21 @@ def build_arg_parser() -> argparse.ArgumentParser:
             "data repo (stdlib-only; the single write path for B1/B2/B4)."
         )
     )
-    parser.add_argument("--type", required=True, choices=ENTRY_TYPES)
-    parser.add_argument("--domain", required=True, help="Bare domain, e.g. example.com")
     parser.add_argument(
-        "--payload", required=True, type=Path, help="Path to the payload JSON file"
+        "--slugify",
+        metavar="TEXT",
+        default=None,
+        help=(
+            "Print the deterministic slug for TEXT and exit 0 -- no other "
+            "flags required. This is the canonical addressing-key rule "
+            "(see seo-history/docs/addressing-key.md); skills call this "
+            "instead of computing a slug from prose rules."
+        ),
+    )
+    parser.add_argument("--type", choices=ENTRY_TYPES, default=None)
+    parser.add_argument("--domain", default=None, help="Bare domain, e.g. example.com")
+    parser.add_argument(
+        "--payload", type=Path, default=None, help="Path to the payload JSON file"
     )
     parser.add_argument(
         "--history-path",
@@ -436,6 +468,22 @@ def build_arg_parser() -> argparse.ArgumentParser:
 
 def main(argv: Optional[list[str]] = None) -> int:
     args = build_arg_parser().parse_args(argv)
+
+    if args.slugify is not None:
+        print(slugify(args.slugify))
+        return 0
+
+    missing = [
+        name
+        for name, value in (("--type", args.type), ("--domain", args.domain), ("--payload", args.payload))
+        if value is None
+    ]
+    if missing:
+        print(
+            f"error: {', '.join(missing)} required (unless --slugify is used)",
+            file=sys.stderr,
+        )
+        return 2
 
     if not args.payload.is_file():
         print(f"error: payload file not found: {args.payload}", file=sys.stderr)
