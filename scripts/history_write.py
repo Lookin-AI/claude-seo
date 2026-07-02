@@ -190,6 +190,32 @@ def compute_target(entry_type: str, domain: str, payload: dict) -> tuple[str, st
     raise PayloadError(f"unknown entry type: {entry_type!r}")
 
 
+# ---------------------------------------------------------------------------
+# log-intervention linkage-enforcement helper (story B4, seo-S-42)
+# ---------------------------------------------------------------------------
+#
+# NOT part of the generic payload contract above: an intervention entry
+# WITHOUT finding_ref is perfectly valid at the schema level (finding_ref is
+# optional in seo-history/schema/intervention.schema.json). This is a
+# business rule specific to the interactive `/seo log-intervention` command
+# (owned by skills/seo-history/SKILL.md), kept here -- alongside slugify(),
+# the other small stdlib-only helper skills import directly -- purely so it
+# is unit-testable instead of being enforced only as SKILL.md prose.
+
+
+def check_intervention_linkage(finding_ref: Optional[str], no_link: bool) -> None:
+    """Enforce log-intervention's "mandatory linkage unless --no-link" rule:
+    the caller must supply either a non-empty `finding_ref` or explicitly
+    pass `no_link=True`. Raises PayloadError (exit 2, usage error -- nothing
+    is written) when neither is present. A no-op (returns None) otherwise."""
+    if (not finding_ref or not finding_ref.strip()) and not no_link:
+        raise PayloadError(
+            "log-intervention requires either --finding <ref> or an explicit "
+            "--no-link; refusing to write an intervention entry with no "
+            "finding linkage and no acknowledged opt-out"
+        )
+
+
 def split_payload(payload: dict, md_filename: str) -> tuple[str, dict]:
     """Split the single-source payload into (markdown_text, json_data).
 

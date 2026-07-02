@@ -17,7 +17,7 @@ metadata:
 **Scripts:** Located at the plugin root `scripts/` directory.
 
 Comprehensive SEO analysis across all industries (SaaS, local services,
-e-commerce, publishers, agencies). Orchestrates 24 sub-skills (21 core + 1 framework
+e-commerce, publishers, agencies). Orchestrates 25 sub-skills (22 core + 1 framework
 integration + 2 extension mirrors) and 18 sub-agents. A separate optional Firecrawl
 extension is also installable (see "Optional Extensions" below).
 
@@ -52,6 +52,7 @@ extension is also installable (see "Optional Extensions" below).
 | `/seo dataforseo [command]` | Live SEO data via DataForSEO (extension) |
 | `/seo image-gen [use-case] <description>` | AI image generation for SEO assets (extension) |
 | `/seo flow [stage] [url\|topic]` | FLOW framework: evidence-led prompts for Find, Leverage, Optimize, Win, or Local stages |
+| `/seo log-intervention <domain> "<description>" [--finding <ref>] [--no-link] [--status ...] [--category ...]` | Log a manual/automated SEO intervention, linked to the audit finding that motivated it |
 
 > **History persistence:** `audit`, `page`, `technical`, `content`, `schema`, `geo`, and `sxo` also write a structured entry to the `seo-history` data repo after their report is produced (see "History Persistence" below). Override the clone location with the `SEO_HISTORY_PATH` env var; the clone is auto-created on first use and hard-fails with setup instructions if `git`/`gh`/`gh auth` are missing.
 
@@ -250,8 +251,8 @@ Weighted aggregate of all categories:
 
 ## Sub-Skills
 
-This skill orchestrates 24 sub-skills (21 core + 1 framework integration + 2 extension
-mirrors). The orchestrator itself (`seo`) is the 25th in `skills/`, but does not
+This skill orchestrates 25 sub-skills (22 core + 1 framework integration + 2 extension
+mirrors). The orchestrator itself (`seo`) is the 26th in `skills/`, but does not
 orchestrate itself, so it is not enumerated below.
 
 1. **seo-audit** -- Full website audit with parallel delegation
@@ -278,6 +279,7 @@ orchestrate itself, so it is not enumerated below.
 22. **seo-dataforseo** -- Live SEO data via DataForSEO MCP (extension mirror)
 23. **seo-image-gen** -- AI image generation for SEO assets via Gemini (extension mirror)
 24. **seo-flow** -- FLOW framework integration (Find -> Leverage -> Optimize -> Win, 41 AI prompts, CC BY 4.0)
+25. **seo-history** -- Log a manual/automated SEO intervention, linked to the audit finding that motivated it (story B4, seo-S-42)
 
 ### Optional Extensions
 
