@@ -228,6 +228,81 @@ When the user asks for "just an outline" or "content outline" instead of a full 
 [Full H2/H3 outline with word counts, format notes, FS targets, keyword guidance, and a 1-2 sentence writing note per section]
 ```
 
+## History Persistence (story B2, seo-S-40)
+
+After delivering the brief (full mode or outline-only mode), persist a
+`content` entry to the `seo-history` data repo via `scripts/history_write.py`
+(the same script `/seo audit` uses, story B0). This is a **BLOCKING GATE,
+non-fatal to output**: a persistence failure must never swallow, delay, or
+block the brief you just produced.
+
+### Why this matters: the cross-fork addressing key
+
+This entry is how `claude-blog` (story B3 -- a different repo that cannot
+read this skill or import this script) will later find this exact brief
+when the article gets published, to transition it from `state: "brief"` to
+`state: "pubblicato"`. B3 finds it by globbing
+`sites/<domain>/content/*.json` and matching on the `slug` field -- it
+cannot reconstruct the filename, because the filename embeds today's date
+and B3 won't know it. So the `slug` you write here MUST be reproducible by
+B3 from the title/topic alone, using the identical deterministic rule.
+
+**The full contract (addressing key + slug rule + rationale for where it
+lives) is documented in `seo-history/docs/addressing-key.md`** -- the data
+repo both `claude-seo` and `claude-blog` already read and write, chosen
+specifically so the rule lives in exactly one place instead of being copied
+into two forks' skill prose and drifting. Do not restate or reinvent the
+rule here; that file is canonical.
+
+### Computing the slug
+
+Do NOT hand-derive the slug from prose rules. Call the canonical helper:
+
+```
+python3 scripts/history_write.py --slugify "<the exact title/H1 you used>"
+```
+
+This prints the slug and exits 0. Use the H1 / primary-keyword-based title
+you put in the brief's `## Content Brief: [Primary Keyword]` (or `##
+Content Outline: [Primary Keyword]`) heading as the input text, so the slug
+is derivable later from the published article's own title.
+
+### Building the payload
+
+Assemble ONE JSON object (write it to a tmp file):
+- `site`: the bare domain of the site this brief is for -- the domain of
+  the target URL (improve mode) or the homepage/domain fetched for context
+  (new-page mode); strip scheme/path and a leading `www.`. Must equal the
+  `--domain` value passed to the CLI.
+- `date`: today, `YYYY-MM-DD`
+- `slug`: the output of `--slugify` above (already normalized -- do not
+  re-slugify or edit it)
+- `content_type`: `"brief"`
+- `state`: `"brief"`
+- `title`: the same title/H1 text you passed to `--slugify`
+- `target_keyword` (optional): the primary keyword, if distinct from the title
+- `audit_id` (optional): only if this brief was explicitly requested as a
+  follow-up to a specific prior `/seo audit` run and you have its
+  `audit_id` -- omit otherwise, never invent one
+- `markdown_report`: the full brief or outline exactly as delivered to the
+  user, as one string (the `## Content Brief: ...` or `## Content Outline:
+  ...` block, verbatim)
+
+Do not set `published_url` or `word_count` -- those belong to the
+`pubblicato` transition B3 performs later, not to a brief.
+
+### Invoking history_write.py (BLOCKING GATE)
+
+```
+python3 scripts/history_write.py --type content --domain <domain> --payload <tmpfile> --json
+```
+
+- Exit `0` -> tell the user `✓ Brief storicizzato`.
+- Non-zero (`1` or `2`) -> the write did NOT happen (fail-closed: schema
+  violation, secret detected, or clone/auth problem -- nothing is
+  committed). Show `⚠️ Brief NON persistito: <reason from stderr>` -- but
+  STILL deliver the full brief/outline produced above, unchanged.
+
 ## DataForSEO Integration (Optional)
 
 If DataForSEO MCP tools are available, use `serp_google_organic_live_advanced` for real SERP data and competitor analysis, `kw_data_google_ads_search_volume` for keyword volume, `dataforseo_labs_bulk_keyword_difficulty` for difficulty scores, `dataforseo_labs_search_intent` for intent classification, and `on_page_content_parsing_live` for competitor content extraction.
