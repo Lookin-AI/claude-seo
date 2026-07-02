@@ -230,7 +230,7 @@ Test: Does ~/.claude/skills/blog/SKILL.md exist?
    - Key points to cover
    - Competing pages to differentiate from
 3. Write briefs to `cluster-briefs/` directory as individual markdown files
-4. Inform user: "Install [claude-blog](https://github.com/AgriciDaniel/claude-blog)
+4. Inform user: "Install [claude-blog](https://github.com/Lookin-AI/claude-blog)
    to auto-create content. Briefs saved to `cluster-briefs/`."
 
 ---

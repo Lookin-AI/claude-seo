@@ -16,21 +16,21 @@ Optional:
 The recommended path. Inside Claude Code:
 
 ```
-/plugin marketplace add AgriciDaniel/claude-seo
-/plugin install claude-seo@agricidaniel-claude-seo
+/plugin marketplace add Lookin-AI/claude-seo
+/plugin install claude-seo@lookin-claude-seo
 ```
 
 ### Manual Install (Unix, macOS, Linux)
 
 ```bash
-git clone --depth 1 https://github.com/AgriciDaniel/claude-seo.git
+git clone --depth 1 https://github.com/Lookin-AI/claude-seo.git
 bash claude-seo/install.sh
 ```
 
 Review-then-run alternative:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/AgriciDaniel/claude-seo/main/install.sh > install.sh
+curl -fsSL https://raw.githubusercontent.com/Lookin-AI/claude-seo/main/install.sh > install.sh
 cat install.sh        # review
 bash install.sh       # run when satisfied
 rm install.sh
@@ -39,7 +39,7 @@ rm install.sh
 ### Manual Install (Windows, PowerShell)
 
 ```powershell
-git clone --depth 1 https://github.com/AgriciDaniel/claude-seo.git
+git clone --depth 1 https://github.com/Lookin-AI/claude-seo.git
 powershell -ExecutionPolicy Bypass -File claude-seo\install.ps1
 ```
 
@@ -50,7 +50,7 @@ The Windows path uses `git clone` rather than `irm | iex` because Claude Code's 
 1. **Clone the repository**
 
 ```bash
-git clone https://github.com/AgriciDaniel/claude-seo.git
+git clone https://github.com/Lookin-AI/claude-seo.git
 cd claude-seo
 ```
 
@@ -112,14 +112,14 @@ You should see a help message or prompt for a URL.
 If installed as a plugin:
 
 ```
-/plugin uninstall claude-seo@agricidaniel-claude-seo
-/plugin marketplace remove AgriciDaniel/claude-seo
+/plugin uninstall claude-seo@lookin-claude-seo
+/plugin marketplace remove Lookin-AI/claude-seo
 ```
 
 If installed manually, run the uninstaller from a fresh clone:
 
 ```bash
-git clone --depth 1 https://github.com/AgriciDaniel/claude-seo.git
+git clone --depth 1 https://github.com/Lookin-AI/claude-seo.git
 bash claude-seo/uninstall.sh
 ```
 
@@ -133,10 +133,10 @@ Caution: Prefer downloading, inspecting, then running remote scripts; the pipe-t
 
 ```bash
 # Uninstall current version
-curl -fsSL https://raw.githubusercontent.com/AgriciDaniel/claude-seo/main/uninstall.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Lookin-AI/claude-seo/main/uninstall.sh | bash
 
 # Install new version
-curl -fsSL https://raw.githubusercontent.com/AgriciDaniel/claude-seo/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Lookin-AI/claude-seo/main/install.sh | bash
 ```
 
 ## Troubleshooting

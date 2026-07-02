@@ -1,33 +1,33 @@
 # CODEOWNERS for claude-seo
 #
-# Every change to this repository routes review to @AgriciDaniel.
+# Every change to this repository routes review to @Lookin-AI.
 # Sections below let us call out security-critical paths so a future
 # co-maintainer cannot accidentally land a change without the right
 # eyes on it.
 
 # Default owner — every file unless overridden below.
-*                                   @AgriciDaniel
+*                                   @Lookin-AI
 
 # Security-critical: SSRF + DNS rebinding + credential handling.
-scripts/url_safety.py               @AgriciDaniel
-scripts/google_auth.py              @AgriciDaniel
-scripts/backlinks_auth.py           @AgriciDaniel
-scripts/render_page.py              @AgriciDaniel
-scripts/fetch_page.py               @AgriciDaniel
-scripts/capture_screenshot.py       @AgriciDaniel
-tests/test_url_safety.py            @AgriciDaniel
-SECURITY.md                         @AgriciDaniel
+scripts/url_safety.py               @Lookin-AI
+scripts/google_auth.py              @Lookin-AI
+scripts/backlinks_auth.py           @Lookin-AI
+scripts/render_page.py              @Lookin-AI
+scripts/fetch_page.py               @Lookin-AI
+scripts/capture_screenshot.py       @Lookin-AI
+tests/test_url_safety.py            @Lookin-AI
+SECURITY.md                         @Lookin-AI
 
 # Release + distribution: install scripts and version pinning are the
 # supply-chain surface.
-install.sh                          @AgriciDaniel
-install.ps1                         @AgriciDaniel
-.claude-plugin/plugin.json          @AgriciDaniel
-.claude-plugin/marketplace.json     @AgriciDaniel
-requirements.txt                    @AgriciDaniel
-pyproject.toml                      @AgriciDaniel
-CITATION.cff                        @AgriciDaniel
+install.sh                          @Lookin-AI
+install.ps1                         @Lookin-AI
+.claude-plugin/plugin.json          @Lookin-AI
+.claude-plugin/marketplace.json     @Lookin-AI
+requirements.txt                    @Lookin-AI
+pyproject.toml                      @Lookin-AI
+CITATION.cff                        @Lookin-AI
 
 # CI / governance.
-.github/                            @AgriciDaniel
-tests/test_manifest_consistency.py  @AgriciDaniel
+.github/                            @Lookin-AI
+tests/test_manifest_consistency.py  @Lookin-AI

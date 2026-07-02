@@ -213,7 +213,7 @@ claude-seo/
 
 Part of the Claude Code skill family:
 - [Claude Banana](https://github.com/AgriciDaniel/banana-claude) -- standalone image gen (bundled as extension here)
-- [Claude Blog](https://github.com/AgriciDaniel/claude-blog) -- companion blog engine, consumes SEO findings
+- [Claude Blog](https://github.com/Lookin-AI/claude-blog) -- companion blog engine, consumes SEO findings
 - [AI Marketing Claude](https://github.com/zubair-trabzada/ai-marketing-claude) -- community marketing suite (copy, emails, ads, funnels, CRO)
 
 ## Key Principles
@@ -231,7 +231,7 @@ the other (different orgs, no parent/child relationship in the GitHub UI).
 
 | Remote | URL | Visibility | Role |
 |---|---|---|---|
-| `origin` | `https://github.com/AgriciDaniel/claude-seo` | **Public** | Published distribution. Users discover, clone, and install from here. `main` only reflects released history. |
+| `origin` | `https://github.com/Lookin-AI/claude-seo` | **Public** | Published distribution. Users discover, clone, and install from here. `main` only reflects released history. |
 | `aimh` | `https://github.com/AI-Marketing-Hub/claude-seo` | **Private** | Working repo inside the AI Marketing Hub org. Daily development. v2 branch + post-release work lives here before promotion to public. |
 
 ### Workflow
@@ -250,7 +250,7 @@ Promoting to public on release:
    - The "tag before merge" sequence (see `feedback_push_caution` memory)
      applies on `origin` to avoid the `curl|bash` outage window where
      users pull a tag that doesn't yet point at code on `main`.
-4. `gh release create vX.Y.Z --repo AgriciDaniel/claude-seo` (public-only).
+4. `gh release create vX.Y.Z --repo Lookin-AI/claude-seo` (public-only).
 5. `/release-blog` to publish the release post.
 
 ### Safety rules
