@@ -53,6 +53,8 @@ extension is also installable (see "Optional Extensions" below).
 | `/seo image-gen [use-case] <description>` | AI image generation for SEO assets (extension) |
 | `/seo flow [stage] [url\|topic]` | FLOW framework: evidence-led prompts for Find, Leverage, Optimize, Win, or Local stages |
 
+> **History persistence:** `audit`, `page`, `technical`, `content`, `schema`, `geo`, and `sxo` also write a structured entry to the `seo-history` data repo after their report is produced (see "History Persistence" below). Override the clone location with the `SEO_HISTORY_PATH` env var; the clone is auto-created on first use and hard-fails with setup instructions if `git`/`gh`/`gh auth` are missing.
+
 ## Orchestration Logic
 
 When the user invokes `/seo audit`, delegate to subagents in parallel:
@@ -71,9 +73,61 @@ When the user invokes `/seo audit`, delegate to subagents in parallel:
 13. **Synthesize via the 10-principle framework** (see "Synthesis Methodology" below) — walk PERCEIVE → ANALYZE → VALIDATE → ACT before bucketing findings into Critical / High / Medium / Low
 14. Create prioritized action plan with dependency sequencing + falsifiability per recommendation
 15. **Offer PDF report**: "Generate a professional PDF report? Use `/seo google report full`"
+16. **Persist to seo-history** (BLOCKING GATE, non-fatal to output): assemble the audit payload and call `scripts/history_write.py` exactly as described in "History Persistence" below. On success, tell the user `✓ Storicizzato in seo-history`. On any non-zero exit, show `⚠️ Audit NON persistito su seo-history: <reason>` -- but still deliver the full audit report and action plan produced in steps 1-14 unchanged. A persistence failure must never swallow or block the analysis the user asked for.
 
 For individual commands, load the relevant sub-skill directly.
 After any analysis command completes, offer to generate a PDF report via `scripts/google_report.py`.
+
+## History Persistence
+
+After producing a scored report for one of the trigger commands below, persist a structured record to the `seo-history` data repo (`Lookin-AI/seo-history`) via `scripts/history_write.py`. This runs in addition to, and independently of, the PDF report offer.
+
+### Which commands write to history
+
+| Command | Writes to seo-history? | Entry type |
+|---------|------------------------|------------|
+| `/seo audit` | Yes | `audit` (full 7-category) |
+| `/seo page` | Yes | `audit` (full 7-category) |
+| `/seo technical` | Yes | `audit` (scoped -- see below) |
+| `/seo content` | Yes | `audit` (scoped -- see below) |
+| `/seo schema` | Yes | `audit` (scoped -- see below) |
+| `/seo geo` | Yes | `audit` (scoped -- see below) |
+| `/seo sxo` | Yes | `audit` (scoped -- see below) |
+| `/seo sitemap` (analyze or generate) | No | -- |
+| `/seo images` (quick on-page/file check) | No | -- |
+| `/seo hreflang` | No | -- |
+| `/seo dataforseo` (data fetch) | No | -- |
+| `/seo image-gen` (asset generation) | No | -- |
+| `/seo content-brief` | No (has its own write path -- story B2) | -- |
+| `/seo plan`, `/seo programmatic`, `/seo competitor-pages`, `/seo local`, `/seo maps`, `/seo google`, `/seo backlinks`, `/seo cluster`, `/seo drift baseline\|compare\|history`, `/seo ecommerce`, `/seo firecrawl`, `/seo flow` | No | -- |
+
+Only the 7 commands above produce a scored report against the canonical 7-category rubric (see "Scoring Methodology"). Everything else is a planning, generation, utility, read-only-data, or narrower-analysis step outside that rubric -- do not write history for those, and never invent an entry type beyond `audit`/`content`/`intervention` (owned by the B0 payload contract in `scripts/history_write.py`).
+
+### Building the payload
+
+Assemble ONE JSON object (write it to a tmp file) with:
+- `audit_id`: unique per run, e.g. `<date>-<domain>-<short-hash-or-time>`
+- `site`: the bare domain -- must equal the `--domain` value passed to the CLI
+- `date`: today, `YYYY-MM-DD`
+- `health_score`: 0-100 weighted aggregate of the 7 categories
+- `categories`: exactly the 7 canonical categories (`Technical SEO`=22, `Content Quality`=23, `On-Page SEO`=20, `Schema / Structured Data`=10, `Performance (CWV)`=10, `AI Search Readiness`=10, `Images`=5), weights summing to 100
+- `issue_counts`: `{critical, high, medium, low}` (optional `info`)
+- `data_sources` (optional -- omit entirely when no Semrush/DataForSEO/paid source was used for this run; the schema and validator both degrade fine without it)
+- `markdown_report`: the full human-readable report you just produced, as one string
+
+`/seo audit` and `/seo page` naturally evaluate all 7 categories (full audits walk every phase per "Synthesis Methodology"). `/seo technical`, `/seo content`, `/seo schema`, `/seo geo`, and `/seo sxo` each evaluate ONE category in depth. For those narrower commands: score the category you actually evaluated for real; for the other 6, look up the most recent `sites/<domain>/audits/*.json` entry already in the seo-history clone (resolve the clone path with the same precedence as `history_write.py`: `--history-path` > `$SEO_HISTORY_PATH` > `~/.config/claude-seo/history.json` > sibling `seo-history` directory) and carry forward its per-category scores. If no prior audit exists for the domain, reuse the freshly computed category's score as a neutral placeholder for the other 6 and say so plainly in `top_findings` (e.g. "Partial-scope entry: only Technical SEO freshly assessed this run; other categories are carried over / placeholder pending a full `/seo audit`"). Never fabricate a precise score you did not compute or carry forward from a real prior entry.
+
+### Invoking history_write.py (BLOCKING GATE)
+
+Run:
+```
+python scripts/history_write.py --type audit --domain <domain> --payload <tmpfile> --json
+```
+
+- Exit `0` -> the write succeeded. Tell the user: `✓ Storicizzato in seo-history`.
+- Non-zero (`1` or `2`) -> the write did NOT happen (fail-closed: schema violation, secret detected, or clone/auth problem -- nothing is committed). Show the user an explicit warning: `⚠️ Audit NON persistito su seo-history: <reason from stderr>` -- but STILL deliver the full normal report/output produced by the command. A persistence failure must never swallow, delay, or block the analysis the user asked for.
+
+`seo-history` is auto-cloned on first use (a sibling directory of this fork by default). Override the location with the `SEO_HISTORY_PATH` env var. If `git`, `gh`, or `gh auth login` are missing/not authenticated, the write hard-fails with setup instructions in the error message -- surface that message verbatim in the warning shown to the user.
 
 ## Synthesis Methodology
 
