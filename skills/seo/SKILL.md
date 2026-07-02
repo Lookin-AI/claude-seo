@@ -17,8 +17,8 @@ metadata:
 **Scripts:** Located at the plugin root `scripts/` directory.
 
 Comprehensive SEO analysis across all industries (SaaS, local services,
-e-commerce, publishers, agencies). Orchestrates 25 sub-skills (22 core + 1 framework
-integration + 2 extension mirrors) and 18 sub-agents. A separate optional Firecrawl
+e-commerce, publishers, agencies). Orchestrates 26 sub-skills (23 core + 1 framework
+integration + 2 extension mirrors) and 19 sub-agents. A separate optional Firecrawl
 extension is also installable (see "Optional Extensions" below).
 
 ## Quick Reference
@@ -50,6 +50,7 @@ extension is also installable (see "Optional Extensions" below).
 | `/seo ecommerce <url>` | E-commerce SEO: product schema, marketplace intelligence |
 | `/seo firecrawl [command] <url>` | Full-site crawling and site mapping (extension) |
 | `/seo dataforseo [command]` | Live SEO data via DataForSEO (extension) |
+| `/seo semrush [command] <domain or keyword>` | Semrush domain analytics, keyword research, backlink/Authority Score, competitor gap (conditional: spawned when Semrush MCP tool detected in-session) |
 | `/seo image-gen [use-case] <description>` | AI image generation for SEO assets (extension) |
 | `/seo flow [stage] [url\|topic]` | FLOW framework: evidence-led prompts for Find, Leverage, Optimize, Win, or Local stages |
 | `/seo log-intervention <domain> "<description>" [--finding <ref>] [--no-link] [--status ...] [--category ...]` | Log a manual/automated SEO intervention, linked to the audit finding that motivated it |
@@ -69,12 +70,13 @@ When the user invokes `/seo audit`, delegate to subagents in parallel:
 8. If content strategy signals detected (blog, pillar pages, topic clusters), also spawn seo-cluster agent
 9. If e-commerce detected, also spawn seo-ecommerce agent
 10. If drift baseline exists for this URL (`python3 scripts/drift_history.py <url>`), also spawn seo-drift agent
-11. Always include seo-sxo in full audits (search experience applies to all sites)
-12. Collect results and generate unified report with SEO Health Score (0-100)
-13. **Synthesize via the 10-principle framework** (see "Synthesis Methodology" below) — walk PERCEIVE → ANALYZE → VALIDATE → ACT before bucketing findings into Critical / High / Medium / Low
-14. Create prioritized action plan with dependency sequencing + falsifiability per recommendation
-15. **Offer PDF report**: "Generate a professional PDF report? Use `/seo google report full`"
-16. **Persist to seo-history** (BLOCKING GATE, non-fatal to output): assemble the audit payload and call `scripts/history_write.py` exactly as described in "History Persistence" below. On success, tell the user `✓ Storicizzato in seo-history`. On any non-zero exit, show `⚠️ Audit NON persistito su seo-history: <reason>` -- but still deliver the full audit report and action plan produced in steps 1-14 unchanged. A persistence failure must never swallow or block the analysis the user asked for.
+11. If a Semrush MCP tool is detected in-session (any tool under `mcp__semrush__*` OR `mcp__claude_ai_Semrush__*`), ask for one upfront opt-in confirmation, then also spawn seo-semrush agent for domain overview / keyword / competitor-gap context (backlink data stays with seo-backlinks to avoid double-billing)
+12. Always include seo-sxo in full audits (search experience applies to all sites)
+13. Collect results and generate unified report with SEO Health Score (0-100)
+14. **Synthesize via the 10-principle framework** (see "Synthesis Methodology" below) — walk PERCEIVE → ANALYZE → VALIDATE → ACT before bucketing findings into Critical / High / Medium / Low
+15. Create prioritized action plan with dependency sequencing + falsifiability per recommendation
+16. **Offer PDF report**: "Generate a professional PDF report? Use `/seo google report full`"
+17. **Persist to seo-history** (BLOCKING GATE, non-fatal to output): assemble the audit payload and call `scripts/history_write.py` exactly as described in "History Persistence" below. On success, tell the user `✓ Storicizzato in seo-history`. On any non-zero exit, show `⚠️ Audit NON persistito su seo-history: <reason>` -- but still deliver the full audit report and action plan produced in steps 1-15 unchanged. A persistence failure must never swallow or block the analysis the user asked for.
 
 For individual commands, load the relevant sub-skill directly.
 After any analysis command completes, offer to generate a PDF report via `scripts/google_report.py`.
@@ -211,6 +213,7 @@ Do NOT show the footer after:
 - `/seo competitor-pages` (page generation step)
 - `/seo programmatic` (quick analysis)
 - `/seo dataforseo` (data fetching utility)
+- `/seo semrush` (data fetching utility)
 - `/seo image-gen` (asset generation)
 - Context intake questions (before analysis starts)
 - Error messages or "missing data" prompts
@@ -251,8 +254,8 @@ Weighted aggregate of all categories:
 
 ## Sub-Skills
 
-This skill orchestrates 25 sub-skills (22 core + 1 framework integration + 2 extension
-mirrors). The orchestrator itself (`seo`) is the 26th in `skills/`, but does not
+This skill orchestrates 26 sub-skills (23 core + 1 framework integration + 2 extension
+mirrors). The orchestrator itself (`seo`) is the 27th in `skills/`, but does not
 orchestrate itself, so it is not enumerated below.
 
 1. **seo-audit** -- Full website audit with parallel delegation
@@ -276,10 +279,11 @@ orchestrate itself, so it is not enumerated below.
 19. **seo-sxo** -- Search Experience Optimization (contributed by Florian Schmitz)
 20. **seo-drift** -- SEO drift monitoring (contributed by Dan Colta)
 21. **seo-ecommerce** -- E-commerce SEO intelligence (contributed by Matej Marjanovic)
-22. **seo-dataforseo** -- Live SEO data via DataForSEO MCP (extension mirror)
-23. **seo-image-gen** -- AI image generation for SEO assets via Gemini (extension mirror)
-24. **seo-flow** -- FLOW framework integration (Find -> Leverage -> Optimize -> Win, 41 AI prompts, CC BY 4.0)
-25. **seo-history** -- Log a manual/automated SEO intervention, linked to the audit finding that motivated it (story B4, seo-S-42)
+22. **seo-semrush** -- Semrush domain analytics, keyword research, backlink/Authority Score, competitor gap (conditional: spawned when Semrush MCP tool detected in-session)
+23. **seo-history** -- Log a manual/automated SEO intervention, linked to the audit finding that motivated it (story B4, seo-S-42)
+24. **seo-dataforseo** -- Live SEO data via DataForSEO MCP (extension mirror)
+25. **seo-image-gen** -- AI image generation for SEO assets via Gemini (extension mirror)
+26. **seo-flow** -- FLOW framework integration (Find -> Leverage -> Optimize -> Win, 41 AI prompts, CC BY 4.0)
 
 ### Optional Extensions
 
@@ -314,6 +318,7 @@ For parallel analysis during audits:
 - `seo-drift` -- Baseline comparison (conditional: drift baseline exists for URL)
 - `seo-ecommerce` -- Product schema, marketplace intel (conditional: e-commerce detected)
 - `seo-flow` -- FLOW framework prompts (conditional: spawned for content strategy workflows)
+- `seo-semrush` -- Domain analytics, keyword research, backlink/Authority Score, competitor gap (conditional: spawned when Semrush MCP tool detected in-session)
 - `seo-dataforseo` -- Live SERP, keyword, backlink, local SEO data (extension, optional)
 - `seo-image-gen` -- SEO image audit and generation plan (extension, optional)
 
