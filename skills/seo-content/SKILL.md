@@ -185,6 +185,10 @@ Per Google's AI optimization guide, "AEO" and "GEO" are rebranded labels for SEO
 
 If DataForSEO MCP tools are available, use `kw_data_google_ads_search_volume` for real keyword volume data, `dataforseo_labs_bulk_keyword_difficulty` for difficulty scores, `dataforseo_labs_search_intent` for intent classification, and `content_analysis_summary` for content quality analysis.
 
+## Semrush Integration (Optional)
+
+If a Semrush MCP tool is available (detected by the presence of an `mcp__semrush__*` or `mcp__claude_ai_Semrush__*` tool in-session — not a local API key), use the `seo-semrush` skill's keyword-research reports (`keyword_overview` / `keyword_research` via `execute_report`) for real keyword volume and Keyword Difficulty. Prefer **DataForSEO > Semrush > WebSearch/intent-inference** when more than one source is available; label Semrush-sourced figures `Semrush (live, 0.90)`. If neither DataForSEO nor Semrush is present, behavior is unchanged (WebSearch / intent inference only). Metered Semrush calls follow the cost guardrail (`python3 scripts/dataforseo_costs.py check semrush_execute_report --count N`).
+
 ## Error Handling
 
 | Scenario | Action |

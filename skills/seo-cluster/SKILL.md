@@ -84,6 +84,12 @@ instead of WebSearch for SERP data. Run `python3 scripts/dataforseo_costs.py che
 before each batch. If `"status": "needs_approval"`, show cost estimate and ask user.
 If `"status": "blocked"`, fall back to WebSearch.
 
+**Semrush integration (optional):** If a Semrush MCP tool is available (presence of an `mcp__semrush__*`
+or `mcp__claude_ai_Semrush__*` tool in-session), use the `seo-semrush` keyword-research reports for real
+keyword volume / Keyword Difficulty to enrich cluster seeds and scoring. Source priority is
+**DataForSEO > Semrush > WebSearch**; run `python3 scripts/dataforseo_costs.py check semrush_execute_report --count N`
+before batches and label Semrush figures `Semrush (live, 0.90)`. If neither is available, fall back to WebSearch unchanged.
+
 ### Step 3: Intent Classification
 
 Classify each keyword into one of four intent categories:
