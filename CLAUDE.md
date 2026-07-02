@@ -4,14 +4,14 @@
 
 This repository contains **Claude SEO**, a Tier 4 Claude Code skill for comprehensive
 SEO analysis across all industries. It follows the Agent Skills open standard and the
-3-layer architecture (directive, orchestration, execution). 25 sub-skills (21 core +
-1 orchestrator + 1 framework integration + 2 extension mirrors), 18 sub-agents (15 core +
+3-layer architecture (directive, orchestration, execution). 26 sub-skills (22 core +
+1 orchestrator + 1 framework integration + 2 extension mirrors), 19 sub-agents (16 core +
 1 framework integration + 2 extension mirrors), and an extensible reference
 system cover technical SEO, content quality,
 schema markup, image optimization, sitemap architecture, AI search optimization,
 local SEO (GBP, citations, reviews, map pack), maps intelligence, semantic topic
 clustering, search experience optimization (SXO), SEO drift monitoring, e-commerce
-SEO, and international SEO with cultural adaptation profiles.
+SEO, Semrush domain/keyword/backlink analytics, and international SEO with cultural adaptation profiles.
 
 ## Architecture
 
@@ -23,7 +23,7 @@ claude-seo/
   .claude-plugin/
     plugin.json                    # Plugin manifest (v2.2.0)
     marketplace.json               # Marketplace catalog for distribution
-  skills/                            # 25 sub-skills (auto-discovered)
+  skills/                            # 26 sub-skills (auto-discovered)
     seo/                           # Main orchestrator skill
       SKILL.md                     # Entry point, routing table, core rules
       references/                  # On-demand knowledge files (12 files)
@@ -58,11 +58,12 @@ claude-seo/
     seo-ecommerce/               # E-commerce SEO (v1.9.0, by Matej Marjanovic)
       SKILL.md
       references/                # Marketplace API endpoints
+    seo-semrush/SKILL.md        # Semrush domain analytics, keywords, backlinks (MCP, no local key)
     seo-dataforseo/SKILL.md     # Live SEO data via DataForSEO MCP (extension mirror)
     seo-image-gen/              # AI image generation for SEO assets (extension mirror)
       SKILL.md
       references/                # Image gen reference files (7 files)
-  agents/                          # 18 subagents (auto-discovered)
+  agents/                          # 19 subagents (auto-discovered)
     seo-technical.md             # Crawlability, indexability, security
     seo-content.md               # E-E-A-T, readability, thin content
     seo-schema.md                # Structured data validation
@@ -74,6 +75,7 @@ claude-seo/
     seo-maps.md                  # Geo-grid, GBP audit, reviews, competitor radius
     seo-google.md                # Google API analyst (CrUX, GSC, GA4)
     seo-backlinks.md             # Backlink profile analyst (Moz, Bing, CC, verify)
+    seo-semrush.md                # Semrush domain analytics, keyword, backlink/Authority Score analyst
     seo-dataforseo.md            # DataForSEO data analyst
     seo-image-gen.md             # SEO image audit analyst
     seo-cluster.md               # Semantic clustering analysis
