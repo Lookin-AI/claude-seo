@@ -1,0 +1,109 @@
+name: Upstream Sync
+
+# Sync questo fork Lookin-AI con l'upstream AgriciDaniel, SEMPRE via Pull Request
+# di revisione, MAI con push diretto su main (branch-protected) — decisione seo-D-8.
+#
+# Nota: la PR è aperta dal GITHUB_TOKEN, quindi NON fa scattare altri workflow
+# (ci.yml) per anti-ricorsione GitHub: nessun YAML upstream viene auto-eseguito
+# con i secret prima della revisione umana. Di conseguenza NESSUN check automatico
+# gira su questa PR — la revisione è solo umana (vedi avviso nel corpo della PR).
+
+on:
+  schedule:
+    - cron: "0 6 * * 3"   # ogni mercoledì 06:00 UTC (sfasato dal lunedì di dependabot)
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write        # push del branch temporaneo di sync
+      pull-requests: write   # apertura della PR di revisione
+    env:
+      GH_TOKEN: ${{ github.token }}
+      UPSTREAM: AgriciDaniel/${{ github.event.repository.name }}
+      # File sempre in conflitto perché il fork è rebrandizzato (E-1): mostrati
+      # come "rumore atteso" nel corpo della PR, distinti dai conflitti funzionali.
+      REBRAND_FILES: "README.md CITATION.cff .claude-plugin/marketplace.json .claude-plugin/plugin.json .github/CODEOWNERS .github/FUNDING.yml"
+    steps:
+      - name: Checkout (full history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configura identità git
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch upstream
+        run: |
+          git remote add upstream "https://github.com/${UPSTREAM}.git"
+          git fetch --quiet upstream main
+
+      - name: Controlla nuovi commit upstream
+        id: check
+        run: |
+          NEW=$(git log origin/main..upstream/main --oneline)
+          if [ -z "$NEW" ]; then
+            echo "già aggiornato — nessun nuovo commit upstream. Nessuna PR."
+            echo "pending=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "pending=true" >> "$GITHUB_OUTPUT"
+            { echo 'commits<<EOF'; echo "$NEW"; echo EOF; } >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Merge su branch temporaneo
+        id: merge
+        if: steps.check.outputs.pending == 'true'
+        run: |
+          BRANCH="upstream-sync-$(date +%Y-%m-%d)-${GITHUB_RUN_ID}"
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+          git switch -c "$BRANCH" origin/main
+          if git merge --no-edit upstream/main; then
+            echo "conflict=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "conflict=true" >> "$GITHUB_OUTPUT"
+            CONF=$(git diff --name-only --diff-filter=U)
+            { echo 'conflicts<<EOF'; echo "$CONF"; echo EOF; } >> "$GITHUB_OUTPUT"
+            # committa lo stato con i marker di conflitto per aprire comunque la PR
+            git add -A
+            git commit -m "Upstream sync: conflitti non risolti, richiesta risoluzione manuale"
+          fi
+          git push -u origin "$BRANCH"
+
+      - name: Apri PR (merge pulito)
+        if: steps.check.outputs.pending == 'true' && steps.merge.outputs.conflict == 'false'
+        run: |
+          gh pr create --repo "$GITHUB_REPOSITORY" --base main \
+            --head "${{ steps.merge.outputs.branch }}" \
+            --label "upstream-sync" \
+            --title "Upstream sync ${{ steps.merge.outputs.branch }}" \
+            --body "$(cat <<'BODY'
+          Sync automatico da `upstream/main` (AgriciDaniel) — merge pulito.
+
+          ### Commit integrati
+          ${{ steps.check.outputs.commits }}
+
+          > ⚠️ **Nessun check automatico gira su questa PR** (la PR è aperta dal GITHUB_TOKEN, quindi ci.yml non parte). **Revisiona il diff manualmente prima di mergiare.**
+          BODY
+          )"
+
+      - name: Apri PR (conflitti)
+        if: steps.check.outputs.pending == 'true' && steps.merge.outputs.conflict == 'true'
+        run: |
+          # separa il rumore rebrand (sempre in conflitto) dai conflitti funzionali
+          NOISE=""; FUNC=""
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            if echo " $REBRAND_FILES " | grep -q " $f "; then NOISE="$NOISE- $f"$'\n'; else FUNC="$FUNC- $f"$'\n'; fi
+          done <<< "${{ steps.merge.outputs.conflicts }}"
+          [ -z "$FUNC" ] && FUNC="_(nessuno — solo rumore rebrand)_"$'\n'
+          gh pr create --repo "$GITHUB_REPOSITORY" --base main \
+            --head "${{ steps.merge.outputs.branch }}" \
+            --label "upstream-sync,needs-manual-resolution" \
+            --title "CONFLITTI DA RISOLVERE MANUALMENTE — upstream sync ${{ steps.merge.outputs.branch }}" \
+            --body "$(printf 'Il merge da \`upstream/main\` ha prodotto conflitti. I marker sono committati nel branch: NON mergiare finché non risolti.\n\n### Commit upstream\n%s\n\n### Conflitti funzionali (da rivedere davvero)\n%s\n### Rumore rebrand atteso (Lookin-AI vs AgriciDaniel)\n%s\n> ⚠️ **Nessun check automatico gira su questa PR.** Revisiona e risolvi manualmente.\n' "${{ steps.check.outputs.commits }}" "$FUNC" "$NOISE")"
