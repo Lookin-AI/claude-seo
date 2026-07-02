@@ -103,6 +103,10 @@ COST_TABLE = {
     "merchant_google_products_search": 0.02,
     "merchant_amazon_products_search": 0.02,
     "merchant_google_sellers_search": 0.02,
+    # Semrush (extension-grade core skill; conservative flat-rate placeholder
+    # pending real per-unit account pricing -- see skills/seo-semrush/SKILL.md)
+    "semrush_execute_report": 0.05,
+    "semrush_backlink_research": 0.05,
 }
 
 # Endpoints that always require confirmation regardless of mode
