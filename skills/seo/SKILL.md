@@ -17,7 +17,7 @@ metadata:
 **Scripts:** Located at the plugin root `scripts/` directory.
 
 Comprehensive SEO analysis across all industries (SaaS, local services,
-e-commerce, publishers, agencies). Orchestrates 26 sub-skills (23 core + 1 framework
+e-commerce, publishers, agencies). Orchestrates 27 sub-skills (24 core + 1 framework
 integration + 2 extension mirrors) and 19 sub-agents. A separate optional Firecrawl
 extension is also installable (see "Optional Extensions" below).
 
@@ -26,6 +26,7 @@ extension is also installable (see "Optional Extensions" below).
 | Command | What it does |
 |---------|-------------|
 | `/seo audit <url>` | Full website audit with parallel subagent delegation |
+| `/seo runbooks [domain]` | Batch runbook: run the audit swarm + keyword + competitor pull across every tracked site (defaults-first weekly run) |
 | `/seo page <url>` | Deep single-page analysis |
 | `/seo sitemap <url or generate>` | Analyze or generate XML sitemaps |
 | `/seo schema <url>` | Detect, validate, and generate Schema.org markup |
@@ -254,8 +255,8 @@ Weighted aggregate of all categories:
 
 ## Sub-Skills
 
-This skill orchestrates 26 sub-skills (23 core + 1 framework integration + 2 extension
-mirrors). The orchestrator itself (`seo`) is the 27th in `skills/`, but does not
+This skill orchestrates 27 sub-skills (24 core + 1 framework integration + 2 extension
+mirrors). The orchestrator itself (`seo`) is the 28th in `skills/`, but does not
 orchestrate itself, so it is not enumerated below.
 
 1. **seo-audit** -- Full website audit with parallel delegation
@@ -284,6 +285,7 @@ orchestrate itself, so it is not enumerated below.
 24. **seo-dataforseo** -- Live SEO data via DataForSEO MCP (extension mirror)
 25. **seo-image-gen** -- AI image generation for SEO assets via Gemini (extension mirror)
 26. **seo-flow** -- FLOW framework integration (Find -> Leverage -> Optimize -> Win, 41 AI prompts, CC BY 4.0)
+27. **seo-runbooks** -- Multi-site in-session batch: run the `/seo audit` swarm + keyword + competitor pull across every tracked site, persist per-site (defaults-first weekly run)
 
 ### Optional Extensions
 
